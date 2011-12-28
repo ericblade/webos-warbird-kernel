@@ -44,7 +44,7 @@ include/linux/utsrelease.h
 patches-*
 
 # quilt's files
-patches
+#patches
 series
 
 # cscope files

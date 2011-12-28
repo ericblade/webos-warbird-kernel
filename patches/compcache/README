@@ -1,0 +1,8 @@
+Creates RAM based block device (named ramzswap) which acts as swap disk. Pages swapped to this disk are compressed and stored in memory itself.
+
+Compressing pages and keeping them in RAM virtually increases its capacity. This allows more applications to fit in given amount of memory. 
+
+compcache.patch: kernel patches for hooks and notifier
+
+compcache054.patch: compcache ramzswap modules
+
