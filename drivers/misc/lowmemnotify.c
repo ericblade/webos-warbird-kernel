@@ -194,7 +194,7 @@ unsigned long memnotify_get_free(void)
 	if (other_free > totalreserve_pages)
 		free += other_free - totalreserve_pages;
 
-	return free;
+	return totalram_pages;
 }
 EXPORT_SYMBOL(memnotify_get_free);
 
@@ -214,7 +214,7 @@ unsigned long memnotify_get_used(void)
 	used_swap = total_swap_pages - nr_swap_pages;
 	used_mem = totalram_pages - free_mem;
 
-	return used_mem + used_swap;
+	return used_swap;
 }
 
 /** 
