@@ -96,5 +96,4 @@ source "drivers/uio/Kconfig"
 
 source "drivers/virtio/Kconfig"
 
-source "drivers/compcache/Kconfig"
 endmenu
