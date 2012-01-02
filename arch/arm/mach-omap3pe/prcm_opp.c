@@ -334,8 +334,8 @@ static struct dpll_param mpu_dpll_param[2][5][PRCM_NO_VDD1_OPPS] = {
 	{{0x12c, 0x0C, 0x07, 0x04}, {0x12c, 0x0C, 0x07, 0x02},
 	/* OPP3(600 Mhz) and OPP4(1000 Mhz)*/
 	{0x12c, 0x0C, 0x07, 0x01}, {0x1f4, 0x0C, 0x07, 0x01},
-	/* OPP5 (1100 Mhz) */
-	{0x226, 0x0C, 0x07, 0x01} },
+	/* OPP5 (1200 Mhz) */
+	{0x258, 0x0C, 0x07, 0x01} },
 	/* 38.4M values */
 	/* OPP1(125 Mhz) and OPP2(250 Mhz)*/
 	{{0x271, 0x2F, 0x03, 0x04}, {0x271, 0x2F, 0x03, 0x02},
@@ -700,7 +700,7 @@ void prcm_scale_finish(void)
 			valid_rate = clk_round_rate(p_vdd1_clk, S1000M);
 			break;
 		case PRCM_VDD1_OPP5:
-			valid_rate = clk_round_rate(p_vdd1_clk, S1100M);
+			valid_rate = clk_round_rate(p_vdd1_clk, S1200M);
 			break;
 #else
 		case PRCM_VDD1_OPP2:
@@ -733,7 +733,7 @@ static struct vdd1_arm_dsp_freq_d {
 	{300, 180, CO_VDD1_OPP2, PRCM_VDD1_OPP2},
 	{600, 360, CO_VDD1_OPP3, PRCM_VDD1_OPP3},
 	{1000, 396, CO_VDD1_OPP4, PRCM_VDD1_OPP4},
-	{1100, 430, CO_VDD1_OPP5, PRCM_VDD1_OPP5},
+	{1200, 430, CO_VDD1_OPP5, PRCM_VDD1_OPP5},
 };
 static struct vdd2_core_freq_d {
 	unsigned int freq;
@@ -746,7 +746,7 @@ static struct vdd2_core_freq_d {
 };
 
 static unsigned int rnd_rate_vdd1[5] = {
-	S150M, S300M, S600M, S1000M, S1100M
+	S150M, S300M, S600M, S1000M, S1200M
 };
 static unsigned int rnd_rate_vdd2[3] = {
 	0, S100M, S200M

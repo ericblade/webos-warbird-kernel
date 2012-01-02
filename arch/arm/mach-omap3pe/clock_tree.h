@@ -93,7 +93,7 @@ static struct vdd_prcm_config vdd1_rate_table[MAX_VDD1_OPP +1] = {
 	/*OPP4*/
 	{S1000M, PRCM_VDD1_OPP4, RATE_IN_343X},
 	/*OPP5*/
-	{S1100M, PRCM_VDD1_OPP5, RATE_IN_343X},
+	{S1200M, PRCM_VDD1_OPP5, RATE_IN_343X},
 };
 
 static struct vdd_prcm_config vdd2_rate_table[MAX_VDD2_OPP +1] = {
