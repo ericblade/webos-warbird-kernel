@@ -66,6 +66,11 @@ extern int load_565rle_image(char *filename);
 /* define the custom FBIO_WAITFORVSYNC ioctl */
 #define FBIO_WAITFORVSYNC       _IOW('F', 0x20, u_int32_t)
 
+#ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_TICKLE
+bool msm_fb_state=1;
+EXPORT_SYMBOL(msm_fb_state);
+#endif
+
 static unsigned char *fbram;
 static unsigned char *fbram_phys;
 static int fbram_size;
@@ -348,6 +353,10 @@ static ssize_t msm_fb_store_state(struct device *dev,
 		else {
 			printk(KERN_INFO"msmfb: Resuming msmfb\n");
 
+#ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_TICKLE
+                        msm_fb_state=1;
+#endif
+
 			acquire_console_sem();
 			ret = msm_fb_resume_sub(mfd);
 			mfd->pdev->dev.power.power_state = PMSG_ON;
@@ -388,6 +397,10 @@ static ssize_t msm_fb_store_state(struct device *dev,
 		}
 		else {
 			printk(KERN_INFO"msmfb: Suspending msmfb\n");
+
+#ifdef CONFIG_CPU_FREQ_GOV_ONDEMAND_TICKLE
+			msm_fb_state=0;
+#endif
 
 			acquire_console_sem();
 			//fb_set_suspend(mfd->fbi[0], 1);
