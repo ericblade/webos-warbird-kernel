@@ -18,6 +18,19 @@ if CPU_FREQ
 config CPU_FREQ_TABLE
 	tristate
 
+config CPU_FREQ_OVERRIDE
+        bool "Enable CPU options override"
+        default y
+        help
+          Say Y here
+
+config CPU_FREQ_OVERRIDE_VOLT_CONFIG
+        bool "Enable CPU voltage tweaking"
+        depends on CPU_FREQ_OVERRIDE
+        default y
+        help
+          Say Y here
+
 config CPU_FREQ_DEBUG
 	bool "Enable CPUfreq debugging"
 	help
