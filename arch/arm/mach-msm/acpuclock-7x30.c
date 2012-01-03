@@ -96,6 +96,10 @@ static struct pll pll2_tbl[] = {
 	{  53, 1, 3, 0 }, /* 1024 MHz */
 	{ 125, 0, 1, 1 }, /* 1200 MHz */
 	{  73, 0, 1, 0 }, /* 1401 MHz */
+	{  80, 0, 1, 0 }, /* 1536 MHz */
+	{  88, 0, 1, 0 }, /* 1689 MHz */
+	{  94, 0, 1, 0 }, /* 1804 MHz */
+	{  99, 0, 1, 0 }, /* 1900 MHz */
 };
 
 /* Use negative numbers for sources that can't be enabled/disabled */
@@ -124,6 +128,10 @@ static struct clkctl_acpu_speed acpu_freq_tbl[] = {
 	{ 1, 1024000, PLL_2, 3, 0, UINT_MAX, 1200, VDD_RAW(1200), &pll2_tbl[1]},
 	{ 1, 1200000, PLL_2, 3, 0, UINT_MAX, 1200, VDD_RAW(1200), &pll2_tbl[2]},
 	{ 1, 1401600, PLL_2, 3, 0, UINT_MAX, 1250, VDD_RAW(1250), &pll2_tbl[3]},
+	{ 1, 1536600, PLL_2, 3, 0, UINT_MAX, 1300, VDD_RAW(1300), &pll2_tbl[4]},
+	{ 1, 1689600, PLL_2, 3, 0, UINT_MAX, 1350, VDD_RAW(1350), &pll2_tbl[5]},
+	{ 1, 1804800, PLL_2, 3, 0, UINT_MAX, 1425, VDD_RAW(1425), &pll2_tbl[6]},
+	{ 1, 1900800, PLL_2, 3, 0, UINT_MAX, 1475, VDD_RAW(1475), &pll2_tbl[7]},
 	{ 0 }
 };
 
@@ -185,6 +193,8 @@ static void acpuclk_set_src(const struct clkctl_acpu_speed *s)
 	reg_clkctl |= s->acpu_src_sel << (4 + 8 * src_sel);
 	reg_clkctl |= s->acpu_src_div << (0 + 8 * src_sel);
 	writel(reg_clkctl, SCSS_CLK_CTL_ADDR);
+
+	if(s->src == PLL_2) writel(s->acpu_clk_khz/19200, PLL2_L_VAL_ADDR);
 
 	/* Toggle clock source. */
 	reg_clksel ^= 1;
@@ -434,6 +444,7 @@ static void setup_cpufreq_table(void)
 		if (speed->use_for_scaling) {
 			cpufreq_tbl[i].index = i;
 			cpufreq_tbl[i].frequency = speed->acpu_clk_khz;
+			printk("cpu: added %u\n",cpufreq_tbl[i].frequency);
 			i++;
 		}
 	cpufreq_tbl[i].frequency = CPUFREQ_TABLE_END;
@@ -457,14 +468,14 @@ void __init pll2_fixup(void)
 		if (speed->src != PLL_2)
 			backup_s = speed;
 		if (speed->pll_rate && speed->pll_rate->l == pll2_l) {
-			speed++;
-			speed->acpu_clk_khz = 0;
+			//speed++;
+			//speed->acpu_clk_khz = 0;
 			return;
 		}
 	}
 
 	pr_err("Unknown PLL2 lval %d\n", pll2_l);
-	BUG();
+	//BUG();
 }
 
 #define RPM_BYPASS_MASK	(1 << 3)
