@@ -60,10 +60,10 @@ ENDPROC(stext)
 __after_proc_init:
 #ifdef CONFIG_CPU_CP15
 	mrc	p15, 0, r0, c1, c0, 0		@ read control reg
-#ifdef CONFIG_ALIGNMENT_TRAP
-	orr	r0, r0, #CR_A
+#ifdef CONFIG_ALLOW_CPU_ALIGNMENT
+i	bic     r0, r0, #CR_A
 #else
-	bic	r0, r0, #CR_A
+	orr     r0, r0, #CR_A
 #endif
 #ifdef CONFIG_CPU_DCACHE_DISABLE
 	bic	r0, r0, #CR_C
