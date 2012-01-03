@@ -37,6 +37,7 @@
 
 #define SCSS_CLK_CTL_ADDR	(MSM_ACC_BASE + 0x04)
 #define SCSS_CLK_SEL_ADDR	(MSM_ACC_BASE + 0x08)
+#define PLL2_L_VAL_ADDR		(MSM_CLK_CTL_BASE + 0x33c)
 
 #define dprintk(msg...) \
 	cpufreq_debug_printk(CPUFREQ_DEBUG_DRIVER, "cpufreq-msm", msg)
@@ -78,8 +79,12 @@ static struct cpufreq_frequency_table freq_table[] = {
 	{ 2, 368640 },
 	{ 3, 768000 },
 	/* 806.4MHz is updated to 1024MHz at runtime for MSM8x55. */
-	{ 4, 806400 },
-	{ 5, CPUFREQ_TABLE_END },
+	{ 4, 806400},
+	{ 5, 1024000},
+	{ 6, 1248000 },
+	{ 7, 1344000 },
+	{ 8, 1401600 },
+	{ 9, CPUFREQ_TABLE_END },
 };
 
 /* Use negative numbers for sources that can't be enabled/disabled */
@@ -97,7 +102,11 @@ static struct clkctl_acpu_speed acpu_freq_tbl[] = {
 	/* ACPU >= 806.4MHz requires MSMC1 @ 1.2V. Voting for
 	 * AXI @ 192MHz accomplishes this implicitly. 806.4MHz
 	 * is updated to 1024MHz at runtime for MSM8x55. */
-	{ 806400, PLL_2,    3, 0,  192000, 1100, VDD_RAW(1100) },
+	{  806400, PLL_2,   3, 0,  192000, 1100, VDD_RAW(1100) },
+	{ 1024000, PLL_2,   3, 0,  192000, 1100, VDD_RAW(1100) },
+	{ 1248000, PLL_2,   3, 0,  192000, 1200, VDD_RAW(1200) },
+	{ 1344000, PLL_2,   3, 0,  192000, 1300, VDD_RAW(1300) },
+	{ 1401600, PLL_2,   3, 0,  192000, 1375, VDD_RAW(1375) },
 	{ 0 }
 };
 
@@ -144,6 +153,8 @@ static void acpuclk_set_src(const struct clkctl_acpu_speed *s)
 	reg_clkctl |= s->acpu_src_sel << (4 + 8 * src_sel);
 	reg_clkctl |= s->acpu_src_div << (0 + 8 * src_sel);
 	writel(reg_clkctl, SCSS_CLK_CTL_ADDR);
+
+	if(s->src == PLL_2) writel(s->acpu_clk_khz/19200, PLL2_L_VAL_ADDR);
 
 	/* Toggle clock source. */
 	reg_clksel ^= 1;
