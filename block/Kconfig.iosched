@@ -31,6 +31,13 @@ config IOSCHED_DEADLINE
 	  a disk at any one time, its behaviour is almost identical to the
 	  anticipatory I/O scheduler and so is a good choice.
 
+config IOSCHED_VR
+	tristate "V(R) I/O scheduler"
+	default n
+	---help---
+	  Requests are chosen according to SSTF with a penalty of rev_penalty
+	  for switching head direction.
+
 config IOSCHED_CFQ
 	tristate "CFQ I/O scheduler"
 	default y
@@ -39,6 +46,16 @@ config IOSCHED_CFQ
 	  among all processes in the system. It should provide a fair
 	  working environment, suitable for desktop systems.
 	  This is the default I/O scheduler.
+
+config IOSCHED_SIO
+      tristate "Simple I/O scheduler"
+      default y
+      ---help---
+        The Simple I/O scheduler is an extremely simple scheduler that
+        does basic merging and no sorting. It is aimed for usage in
+        aleatory access devices like SSD, USB flash devices, etc.
+        It differences synchronous requests from asynchronous ones for
+        better interactibility.
 
 choice
 	prompt "Default I/O scheduler"
@@ -58,6 +75,11 @@ choice
 
 	config DEFAULT_NOOP
 		bool "No-op"
+	config DEFAULT_VR
+		bool "V(R)" if IOSCHED_VR=y
+
+	config DEFAULT_SIO
+		bool "SIO" if IOSCHED_SIO=y
 
 endchoice
 
@@ -67,6 +89,8 @@ config DEFAULT_IOSCHED
 	default "deadline" if DEFAULT_DEADLINE
 	default "cfq" if DEFAULT_CFQ
 	default "noop" if DEFAULT_NOOP
+	default "sio" if DEFAULT_SIO
+	default "vr" if DEFAULT_VR
 
 endmenu
 
