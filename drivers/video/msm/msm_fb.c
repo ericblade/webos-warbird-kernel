@@ -50,6 +50,10 @@
 #include "mdp.h"
 #include "mdp4.h"
 
+#ifdef CONFIG_CPU_FREQ_GOV_SCREENSTATE
+void cpufreq_set_ss_state(bool state);
+#endif
+
 #ifdef CONFIG_FB_MSM_LOGO
 #define INIT_IMAGE_FILE "/logo.rle"
 extern int load_565rle_image(char *filename);
@@ -280,6 +284,9 @@ static ssize_t msm_fb_store_state(struct device *dev,
 			++mfd->panel_info.frame_count;
 			up(&msm_fb_pan_sem);
 
+#ifdef CONFIG_CPU_FREQ_GOV_SCREENSTATE
+			cpufreq_set_ss_state(1);
+#endif
 		}
 
 	}
@@ -306,6 +313,9 @@ static ssize_t msm_fb_store_state(struct device *dev,
 				mfd->suspended = true;
 			}
 			release_console_sem();
+#ifdef CONFIG_CPU_FREQ_GOV_SCREENSTATE
+			cpufreq_set_ss_state(0);
+#endif
 		}
 
 	}
