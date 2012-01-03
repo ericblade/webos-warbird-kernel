@@ -51,6 +51,10 @@
 #include "mdp.h"
 #include "mdp4.h"
 
+#ifdef CONFIG_CPU_FREQ_OVERRIDE_TURBO_MODE
+void cpufreq_override_set_lcd_state(bool state);
+#endif
+
 #ifdef CONFIG_FB_MSM_LOGO
 #define INIT_IMAGE_FILE "/initlogo.rle"
 extern int load_565rle_image(char *filename);
@@ -362,6 +366,10 @@ static ssize_t msm_fb_store_state(struct device *dev,
 			//fb_set_suspend(mfd->fbi[0], FBINFO_STATE_RUNNING);
 
 			mfd->suspended = false;
+
+#ifdef CONFIG_CPU_FREQ_OVERRIDE_TURBO_MODE
+                        cpufreq_override_set_lcd_state(1);
+#endif
 		}
 
 	}
@@ -385,6 +393,10 @@ static ssize_t msm_fb_store_state(struct device *dev,
 				//fb_set_suspend(mfd->fbi[0], FBINFO_STATE_SUSPENDED);
 				mfd->pdev->dev.power.power_state = PMSG_SUSPEND;
 				mfd->suspended = true;
+
+#ifdef CONFIG_CPU_FREQ_OVERRIDE_TURBO_MODE
+                                cpufreq_override_set_lcd_state(0);
+#endif
 			}
 		}
 
