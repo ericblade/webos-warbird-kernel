@@ -47,9 +47,10 @@
 #define S125M	125000000
 #define S250M	250000000
 #define S500M	500000000
-#define S550M	550000000
-#define S625M	625000000
-#define S600M	600000000
+#define S700M	700000000
+#define S800M	800000000
+#define S900M	900000000
+#define S1100M	1100000000
 
 /* Macro to enable clock control via clock framework */
 #define ENABLE_CLOCKCONTROL 1
