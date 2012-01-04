@@ -94,6 +94,30 @@ static struct dbs_tuners {
 	.powersave_bias = 0,
 };
 
+static bool ss_enabled = 0;
+static unsigned int sleep_max_freq = 500000;
+extern bool omap_fb_state;
+
+static int cpufreq_target(struct cpufreq_policy *policy, unsigned int freq,
+                                                        unsigned int relation)
+{
+        int retval = -EINVAL;
+
+        if(omap_fb_state || !ss_enabled) {
+                retval = __cpufreq_driver_target(policy, freq, relation);
+        }
+        else {
+                if(freq <= sleep_max_freq)
+                        retval = __cpufreq_driver_target(policy, freq,
+                                                                relation);
+                else
+                        retval = __cpufreq_driver_target(policy, sleep_max_freq,
+                                                                relation);
+        }
+
+        return retval;
+}
+
 static inline cputime64_t get_cpu_idle_time(unsigned int cpu)
 {
 	cputime64_t idle_time;
@@ -190,6 +214,16 @@ static ssize_t show_sampling_rate_max(struct cpufreq_policy *policy, char *buf)
 static ssize_t show_sampling_rate_min(struct cpufreq_policy *policy, char *buf)
 {
 	return sprintf (buf, "%u\n", MIN_SAMPLING_RATE);
+}
+
+static ssize_t show_screen_off_max_freq(struct cpufreq_policy *unused, char *buf)
+{
+        return sprintf(buf, "%u\n", sleep_max_freq);
+}
+
+static ssize_t show_screenstate_enable(struct cpufreq_policy *unused, char *buf)
+{
+        return sprintf(buf, "%u\n", ss_enabled);
 }
 
 #define define_one_ro(_name)		\
@@ -306,6 +340,45 @@ static ssize_t store_powersave_bias(struct cpufreq_policy *unused,
 	return count;
 }
 
+static ssize_t store_screen_off_max_freq(struct cpufreq_policy *unuesd,
+                                                const char *buf, size_t count)
+{
+        unsigned int input;
+        int ret;
+        ret = sscanf(buf, "%u", &input);
+
+        if (ret != 1)
+                return -EINVAL;
+
+        if (input < 122880 || input > 2000000) {
+                printk("ondemand-ng: invalid sleep freq\n");
+                return -EINVAL;
+        }
+
+        sleep_max_freq = input;
+
+        return count;
+}
+
+static ssize_t store_screenstate_enable(struct cpufreq_policy *unuesd,
+                                                const char *buf, size_t count)
+{
+        unsigned int input;
+        int ret;
+        ret = sscanf(buf, "%u", &input);
+
+        if (ret != 1)
+                return -EINVAL;
+
+        if (input != 0 && input != 1) {
+                return -EINVAL;
+        }
+
+        ss_enabled = input;
+
+        return count;
+}
+
 #define define_one_rw(_name) \
 static struct freq_attr _name = \
 __ATTR(_name, 0644, show_##_name, store_##_name)
@@ -314,6 +387,8 @@ define_one_rw(sampling_rate);
 define_one_rw(up_threshold);
 define_one_rw(ignore_nice_load);
 define_one_rw(powersave_bias);
+define_one_rw(screen_off_max_freq);
+define_one_rw(screenstate_enable);
 
 static struct attribute * dbs_attributes[] = {
 	&sampling_rate_max.attr,
@@ -322,6 +397,8 @@ static struct attribute * dbs_attributes[] = {
 	&up_threshold.attr,
 	&ignore_nice_load.attr,
 	&powersave_bias.attr,
+	&screen_off_max_freq.attr,
+	&screenstate_enable.attr,
 	NULL
 };
 
@@ -391,12 +468,12 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 			if (policy->cur == policy->max)
 				return;
 
-			__cpufreq_driver_target(policy, policy->max,
+			cpufreq_target(policy, policy->max,
 				CPUFREQ_RELATION_H);
 		} else {
 			int freq = powersave_bias_target(policy, policy->max,
 					CPUFREQ_RELATION_H);
-			__cpufreq_driver_target(policy, freq,
+			cpufreq_target(policy, freq,
 				CPUFREQ_RELATION_L);
 		}
 		return;
@@ -423,12 +500,12 @@ static void dbs_check_cpu(struct cpu_dbs_info_s *this_dbs_info)
 			(dbs_tuners_ins.up_threshold - 10);
 
 		if (!dbs_tuners_ins.powersave_bias) {
-			__cpufreq_driver_target(policy, freq_next,
+			cpufreq_target(policy, freq_next,
 					CPUFREQ_RELATION_L);
 		} else {
 			int freq = powersave_bias_target(policy, freq_next,
 					CPUFREQ_RELATION_L);
-			__cpufreq_driver_target(policy, freq,
+			cpufreq_target(policy, freq,
 				CPUFREQ_RELATION_L);
 		}
 	}
@@ -465,7 +542,7 @@ static void do_dbs_timer(struct work_struct *work)
 			delay = dbs_info->freq_hi_jiffies;
 		}
 	} else {
-		__cpufreq_driver_target(dbs_info->cur_policy,
+		cpufreq_target(dbs_info->cur_policy,
 	                        	dbs_info->freq_lo,
 	                        	CPUFREQ_RELATION_H);
 	}
@@ -566,11 +643,11 @@ static int cpufreq_governor_dbs(struct cpufreq_policy *policy,
 	case CPUFREQ_GOV_LIMITS:
 		mutex_lock(&dbs_mutex);
 		if (policy->max < this_dbs_info->cur_policy->cur)
-			__cpufreq_driver_target(this_dbs_info->cur_policy,
+			cpufreq_target(this_dbs_info->cur_policy,
 			                        policy->max,
 			                        CPUFREQ_RELATION_H);
 		else if (policy->min > this_dbs_info->cur_policy->cur)
-			__cpufreq_driver_target(this_dbs_info->cur_policy,
+			cpufreq_target(this_dbs_info->cur_policy,
 			                        policy->min,
 			                        CPUFREQ_RELATION_L);
 		mutex_unlock(&dbs_mutex);
